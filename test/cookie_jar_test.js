@@ -541,4 +541,33 @@ vows
       }
     }
   })
+  .addBatch({
+      "When rejectPublicSuffixes=false": {
+        topic: function() {
+          return new CookieJar(null, {rejectPublicSuffixes: false})
+        },
+        "verify setCookieSync not polluted":
+        function(err, jar) {
+          assert.ifError(err)
+          jar.setCookieSync("foo=bar; Domain=__proto__; Path=/badAttr", "https://__proto__/admin")
+
+          assert.strictEqual(Object.prototype.hasOwnProperty('/badAttr'), false, "Expect object.prototype to not have badAttr")
+
+          delete Object.prototype['/badAttr']
+        },
+        "try to pollute setCookie": {
+          topic: function(jar) {
+            jar.setCookie("foo=bar; Domain=__proto__; Path=/badAttr", "https://__proto__/admin", this.callback)
+
+          },
+          "verify setCookie not polluted":
+          function(err, cookie) {
+            assert.ifError(err)
+            assert.strictEqual(Object.prototype.hasOwnProperty('/badAttr'), false, "Expect object.prototype to not have badAttr")
+
+            delete Object.prototype['/badAttr']
+        }
+      }
+    }
+  })
   .export(module);
